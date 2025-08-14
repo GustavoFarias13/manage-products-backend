@@ -1,5 +1,7 @@
 package com.gustavofarias.manageproductsbackend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.Data;
@@ -9,8 +11,10 @@ import java.time.LocalDateTime;
 @Data
 @Entity
 public class Produto {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY) // só leitura no JSON
     private Long id;
 
     @NotBlank(message = "Nome é obrigatório")
@@ -30,5 +34,7 @@ public class Produto {
     private Integer quantidadeEstoque;
 
     @PastOrPresent
+    @Column(nullable = false)
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY) // só leitura no JSON
     private LocalDateTime dataCriacao = LocalDateTime.now();
 }
