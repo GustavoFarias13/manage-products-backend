@@ -1,6 +1,7 @@
 package com.gustavofarias.manageproductsbackend.controller;
 
 import com.gustavofarias.manageproductsbackend.entity.Product;
+import com.gustavofarias.manageproductsbackend.entity.SortOrder;
 import com.gustavofarias.manageproductsbackend.service.ProductService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
@@ -25,8 +26,10 @@ public class ProductController {
     @GetMapping
     public List<Product> getAllProducts(
             @RequestParam(required = false) String name,
-            @RequestParam(required = false) String price) {
-        return productService.getAll(name, price);
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice,
+            @RequestParam(required = false) SortOrder priceOrder) {
+        return productService.getAll(name, minPrice, maxPrice, priceOrder);
     }
 
     @GetMapping("/{id}")

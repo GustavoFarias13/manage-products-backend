@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.gustavofarias</groupId>
     <artifactId>manage-products-backend</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
     <name>manage-products-backend</name>
     <description>manage-products-backend</description>
     <url/>

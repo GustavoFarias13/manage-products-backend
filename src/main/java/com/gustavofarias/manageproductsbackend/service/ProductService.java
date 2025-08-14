@@ -1,6 +1,7 @@
 package com.gustavofarias.manageproductsbackend.service;
 
 import com.gustavofarias.manageproductsbackend.entity.Product;
+import com.gustavofarias.manageproductsbackend.entity.SortOrder;
 import com.gustavofarias.manageproductsbackend.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 
@@ -21,15 +22,25 @@ public class ProductService {
         return repository.save(product);
     }
 
-    public List<Product> getAll(String name, String priceOrder) {
+    public List<Product> getAll(String name, Double minPrice, Double maxPrice, SortOrder priceOrder) {
+        // Filtra produtos pelo nome (se fornecido)
         List<Product> products = (name != null && !name.isBlank()) ?
                 repository.findByNomeContainingIgnoreCase(name) :
                 repository.findAll();
 
-        if ("asc".equalsIgnoreCase(priceOrder)) {
-            products.sort(Comparator.comparing(Product::getPreco));
-        } else if ("desc".equalsIgnoreCase(priceOrder)) {
-            products.sort(Comparator.comparing(Product::getPreco).reversed());
+        // Filtra produtos por preço mínimo e máximo (se fornecido)
+        products = products.stream()
+                .filter(p -> (minPrice == null || p.getPreco() >= minPrice))
+                .filter(p -> (maxPrice == null || p.getPreco() <= maxPrice))
+                .toList();
+
+        // Ordena por preço se solicitado
+        if (priceOrder != null) {
+            if (priceOrder == SortOrder.ASC) {
+                products.sort(Comparator.comparing(Product::getPreco));
+            } else if (priceOrder == SortOrder.DESC) {
+                products.sort(Comparator.comparing(Product::getPreco).reversed());
+            }
         }
 
         return products;
