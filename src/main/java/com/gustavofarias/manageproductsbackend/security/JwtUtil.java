@@ -9,6 +9,9 @@ import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 
+/**
+ * Utilitário para geração e validação de JWT.
+ */
 @Component
 public class JwtUtil {
 
@@ -21,9 +24,13 @@ public class JwtUtil {
         this.expirationMs = expirationMs;
     }
 
+    /**
+     * Gera um token JWT para o username informado.
+     */
     public String generateToken(String username) {
         Date now = new Date();
         Date exp = new Date(now.getTime() + expirationMs);
+
         return Jwts.builder()
                 .setSubject(username)
                 .setIssuedAt(now)
@@ -32,12 +39,22 @@ public class JwtUtil {
                 .compact();
     }
 
+    /**
+     * Extrai o username do token.
+     */
     public String getUsername(String token) {
-        return Jwts.parserBuilder().setSigningKey(key).build()
-                .parseClaimsJws(token).getBody().getSubject();
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject();
     }
 
-    public boolean isValid(String token) {
+    /**
+     * Valida se o token é correto e não expirou.
+     */
+    public boolean isTokenValid(String token) {
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;

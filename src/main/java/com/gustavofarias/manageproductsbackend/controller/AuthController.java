@@ -1,8 +1,10 @@
 package com.gustavofarias.manageproductsbackend.controller;
 
-import com.gustavofarias.manageproductsbackend.dto.*;
-import com.gustavofarias.manageproductsbackend.entity.Usuario;
-import com.gustavofarias.manageproductsbackend.repository.UsuarioRepository;
+import com.gustavofarias.manageproductsbackend.dto.AuthRequest;
+import com.gustavofarias.manageproductsbackend.dto.AuthResponse;
+import com.gustavofarias.manageproductsbackend.dto.SignupRequest;
+import com.gustavofarias.manageproductsbackend.entity.User;
+import com.gustavofarias.manageproductsbackend.repository.UserRepository;
 import com.gustavofarias.manageproductsbackend.security.JwtUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,36 +16,41 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final JwtUtil jwtUtil;
-    private final UsuarioRepository userRepo;
-    private final PasswordEncoder encoder;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public AuthController(JwtUtil jwtUtil, UsuarioRepository userRepo, PasswordEncoder encoder) {
+    public AuthController(JwtUtil jwtUtil, UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.jwtUtil = jwtUtil;
-        this.userRepo = userRepo;
-        this.encoder = encoder;
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest req) {
-        var userOpt = userRepo.findByUsername(req.username());
-        if (userOpt.isEmpty() || !encoder.matches(req.password(), userOpt.get().getPassword())) {
+    public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest request) {
+        var user = userRepository.findByUsername(request.username())
+                .orElse(null);
+
+        if (user == null || !passwordEncoder.matches(request.password(), user.getPassword())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        String token = jwtUtil.generateToken(req.username());
+        var token = jwtUtil.generateToken(user.getUsername());
         return ResponseEntity.ok(new AuthResponse(token));
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<?> signup(@RequestBody SignupRequest req) {
-        if (userRepo.findByUsername(req.username()).isPresent()) {
+    public ResponseEntity<String> signup(@RequestBody SignupRequest request) {
+        if (userRepository.findByUsername(request.username()).isPresent()) {
             return ResponseEntity.badRequest().body("Usuário já existe");
         }
-        Usuario u = new Usuario();
-        u.setUsername(req.username());
-        u.setPassword(encoder.encode(req.password()));
-        u.setRole("ROLE_USER");
-        userRepo.save(u);
-        return ResponseEntity.ok().build();
+
+        var newUser = new User();
+        newUser.setUsername(request.username());
+        newUser.setPassword(passwordEncoder.encode(request.password()));
+        newUser.setRole("ROLE_USER");
+
+        userRepository.save(newUser);
+
+        return ResponseEntity.ok("Usuário cadastrado com sucesso");
     }
 }
